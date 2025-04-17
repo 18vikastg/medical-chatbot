@@ -11,20 +11,20 @@ from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import PromptTemplate
 from langchain.llms import HuggingFacePipeline
 
-# ── 1) Windows asyncio fix ───────────────────────────────────────────────────
+#  1) Windows asyncio fix 
 if sys.version_info >= (3, 8):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 DB_FAISS_PATH = "vectorstore/db_faiss"
 MODEL_NAME = "google/flan-t5-large"
 
-# ── 2) Load FAISS Vectorstore ────────────────────────────────────────────────
+# 2) Load FAISS Vectorstore 
 @st.cache_resource(show_spinner=False)
 def get_vectorstore():
     embed = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     return FAISS.load_local(DB_FAISS_PATH, embed, allow_dangerous_deserialization=True)
 
-# ── 3) Build Prompt Template ─────────────────────────────────────────────────
+#  3) Build Prompt Template 
 def build_prompt():
     return PromptTemplate(
         template="""
@@ -42,7 +42,7 @@ Answer in full sentences, provide examples if helpful.
         input_variables=["context", "question"]
     )
 
-# ── 4) Load the model locally ─────────────────────────────────────────────────
+#  4) Load the model locally 
 @st.cache_resource(show_spinner=False)
 def load_local_llm():
     with st.spinner("Loading medical knowledge base. Please wait..."):
@@ -61,7 +61,7 @@ def load_local_llm():
         )
         return HuggingFacePipeline(pipeline=pipe)
 
-# ── 5) Streamlit UI + QA loop ────────────────────────────────────────────────
+#  5) Streamlit UI + QA loop 
 def main():
     # Set page config
     st.set_page_config(
@@ -211,6 +211,10 @@ def main():
         st.markdown("[CDC Health Information](https://www.cdc.gov/)")
         st.markdown("[WHO Guidelines](https://www.who.int/)")
         st.markdown("[NIH MedlinePlus](https://medlineplus.gov/)")
+
+        # GitHub link
+        st.markdown("#### Connect with me")
+        st.markdown("[GitHub: 18vikastg](https://github.com/18vikastg)")
         
         # Copyright notice
         st.markdown("<div class='copyright'>© 2025 vikastg. All rights reserved.</div>", unsafe_allow_html=True)
