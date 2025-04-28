@@ -7,19 +7,19 @@ from langchain_community.vectorstores import FAISS
 
 # Set your Hugging Face token
 HF_TOKEN = os.getenv("HF_TOKEN") or "hf_your_actual_token_here"
-HUGGINGFACE_REPO_ID = "google/flan-t5-large"  # Use 'large' for better results
+HUGGINGFACE_REPO_ID = "microsoft/BioGPT"  # Switch to BioGPT
 
 def load_llm(repo_id):
     return HuggingFaceEndpoint(
         repo_id=repo_id,
-        temperature=0.5,
+        temperature=0.7,  # Adjust temperature for coherence
         huggingfacehub_api_token=HF_TOKEN,
-        task="text-generation",  # flan-t5-large supports this
-        model_kwargs={"max_new_tokens": 512}
+        task="text-generation",  # Suitable for BioGPT
+        model_kwargs={"max_new_tokens": 150}  # Limit output length
     )
 
 CUSTOM_PROMPT_TEMPLATE = """
-You are a helpful and knowledgeable medical assistant. Use the provided context to answer the user's question clearly and in 5-6 lines.
+You are a helpful and knowledgeable medical assistant. Use the provided context to answer the user's question clearly and in 5-6 sentences.
 
 Context:
 {context}
@@ -47,6 +47,7 @@ qa_chain = RetrievalQA.from_chain_type(
     llm=load_llm(HUGGINGFACE_REPO_ID),
     chain_type="stuff",
     retriever=db.as_retriever(search_kwargs={'k': 3}),
+    return_source_documents=True,
     chain_type_kwargs={"prompt": set_custom_prompt(CUSTOM_PROMPT_TEMPLATE)}
 )
 
@@ -55,3 +56,6 @@ user_query = input("Write your medical query: ")
 response = qa_chain.invoke({"query": user_query})
 
 print("\nRESULT:\n", response["result"])
+print("\nSOURCE DOCUMENTS:")
+for doc in response["source_documents"]:
+    print("-", doc.metadata.get("source", "<unknown>"))
